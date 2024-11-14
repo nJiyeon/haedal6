@@ -36,9 +36,4 @@ public class Place {
     @Column(name = "winter", nullable = false)
     private Boolean winter;
 
-    /* --------------------------------- */
-    /* ----------- Functions ----------- */
-    /* --------------------------------- */
-
-
 }
