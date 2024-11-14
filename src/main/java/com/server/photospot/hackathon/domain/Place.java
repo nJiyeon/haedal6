@@ -1,9 +1,11 @@
 package com.server.photospot.hackathon.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
 @Table(name ="place")
+@Getter
 public class Place {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
