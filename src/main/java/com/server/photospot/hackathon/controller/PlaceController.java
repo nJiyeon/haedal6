@@ -1,6 +1,7 @@
 package com.server.photospot.hackathon.controller;
 
 import com.server.photospot.hackathon.dto.req.PlacesRequest;
+import com.server.photospot.hackathon.dto.res.PlaceDetailResponse;
 import com.server.photospot.hackathon.dto.res.PlacesResponse;
 import com.server.photospot.hackathon.service.PlaceService;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,6 @@ public class PlaceController {
 
     private final PlaceService placeService;
 
-
     @PostMapping("/api/getPlaces")
     public ResponseEntity<List<PlacesResponse>> getPlaces(@RequestBody PlacesRequest request){
         List<PlacesResponse> responses = placeService.findPlaceByFourSeasons(request);
@@ -23,11 +23,10 @@ public class PlaceController {
     }
 
     @GetMapping("/api/getPlaceDetail")
-    public ResponseEntity<?> getPlaceDetail(
-        @RequestParam Float latitude, @RequestParam Float Longitude
+    public ResponseEntity<PlaceDetailResponse> getPlaceDetail(
+        @RequestParam Double latitude, @RequestParam Double longitude
     ){
-        // 서비스에서 호출할 예정
-        return ResponseEntity.ok("");
+        PlaceDetailResponse response = placeService.placeDetail(latitude, longitude);
+        return ResponseEntity.ok(response);
     }
-
 }

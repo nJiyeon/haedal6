@@ -12,4 +12,5 @@ public interface PlaceRepository extends JpaRepository<Place,Long> {
     List<Place> findAllBySummer(Boolean summer);
     List<Place> findAllByFall(Boolean fall);
     List<Place> findAllByWinter(Boolean winter);
+    Place findByLatitudeAndLongitude(Double latitude, Double longitude);
 }

@@ -6,6 +6,10 @@ import lombok.Builder;
 public record PlaceDetailResponse(
         String name,
         String address,
-        String imgUrl
+        Boolean spring,
+        Boolean summer,
+        Boolean fall,
+        Boolean winter,
+        String imageData
 ) {
 }

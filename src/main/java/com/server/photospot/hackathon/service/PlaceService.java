@@ -8,17 +8,18 @@ import com.server.photospot.hackathon.repository.PlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PlaceService {
     private final PlaceRepository placeRepository;
-    //private final Path imageDir = Paths.get(System.getProperty("user.dir"),"src/main/resources/image");
+    private final Path imageDir = Paths.get(System.getProperty("user.dir"),"src/main/resources/static/");
 
     public List<PlacesResponse> findPlaceByFourSeasons(PlacesRequest request){
         Set<PlacesResponse> placesResponses = new HashSet<>();
@@ -44,8 +45,29 @@ public class PlaceService {
         return placesResponses.stream().collect(Collectors.toList());
     }
 
-    public PlaceDetailResponse placeDetail(Float latitude, Float longitude){
-        PlaceDetailResponse response = null;
-        return response;
+    public PlaceDetailResponse placeDetail(Double latitude, Double longitude){
+        Place place = placeRepository.findByLatitudeAndLongitude(latitude, longitude);
+        String imgUrl = encodingImageToBase64(System.getProperty("user.dir") + "/src/main/resources/static/"+ place.getLatitude().toString() + "_" + place.getLongitude().toString() + ".jpg");
+        System.out.println(imgUrl);
+        return new PlaceDetailResponse(
+                place.getName(),
+                place.getAddress(),
+                place.getSpring(),
+                place.getSummer(),
+                place.getFall(),
+                place.getWinter(),
+                imgUrl
+        );
+    }
+
+    public String encodingImageToBase64(String imagePath){
+        System.out.println(imagePath);
+        try{
+            Path path = Paths.get(imagePath);
+            byte[] imageBytes = Files.readAllBytes(path);
+            return Base64.getEncoder().encodeToString(imageBytes);
+        } catch(IOException e){
+            return null;
+        }
     }
 }

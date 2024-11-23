@@ -23,9 +23,6 @@ public class Place {
     @Column(name ="address", nullable = false)
     private String address;
 
-    @Column(name ="imageUrl", nullable = false)
-    private String imgUrl;
-
     @Column(name="spring", nullable = false)
     private Boolean spring;
 
