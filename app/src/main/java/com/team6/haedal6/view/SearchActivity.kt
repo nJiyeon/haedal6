@@ -13,7 +13,7 @@ import com.team6.haedal6.databinding.ActivitySearchBinding
 import com.team6.haedal6.adapter.keyword.KeywordAdapter
 import com.team6.haedal6.adapter.search.SearchAdapter
 import com.team6.haedal6.model.Location
-import com.team6.haedal6.viewmodel.keyword.KeywordViewModel
+import com.team6.haedal6.model.Seasons
 import com.team6.haedal6.viewmodel.search.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,56 +21,88 @@ import dagger.hilt.android.AndroidEntryPoint
 class SearchActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordItemClickListener {
     private lateinit var binding: ActivitySearchBinding
 
-    // ViewModel을 Lazy하게 제공받기
+    // ViewModel instances
     private val searchViewModel: SearchViewModel by viewModels()
-    private val keywordViewModel: KeywordViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySearchBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 검색 결과 RecyclerView 설정
-        var searchAdapter = SearchAdapter(this)
+        // Set up RecyclerView for search results
+        val searchAdapter = SearchAdapter(this)
         binding.searchResultView.apply {
             layoutManager = LinearLayoutManager(this@SearchActivity)
             adapter = searchAdapter
             addItemDecoration(DividerItemDecoration(context, LinearLayoutManager.VERTICAL))
         }
 
-        // 검색어 목록 RecyclerView 설정
-        var keywordAdapter = KeywordAdapter(this)
+        // Set up RecyclerView for keyword history
+        val keywordAdapter = KeywordAdapter(this)
         binding.keywordHistoryView.apply {
             layoutManager = LinearLayoutManager(this@SearchActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = keywordAdapter
         }
 
-        // 검색 입력 설정
-        binding.searchTextInput.doAfterTextChanged {
-            searchViewModel.searchLocationData(it.toString())
+        // Observe search results
+        searchViewModel.locations.observe(this) { locations ->
+            searchAdapter.submitList(locations)
+            binding.searchResultView.visibility = if (locations.isEmpty()) View.GONE else View.VISIBLE
+            binding.emptyView.visibility = if (locations.isEmpty()) View.VISIBLE else View.GONE
         }
 
-        // 취소 버튼 클릭 이벤트 설정
+        // Observe pin coordinates based on selected seasons
+        searchViewModel.coordinate.observe(this) { coordinate ->
+            // Use the coordinates to display pins on a map (implement this logic here)
+        }
+
+        // Observe errors
+        searchViewModel.error.observe(this) { errorMessage ->
+            // Show error message (e.g., Toast)
+        }
+
+        // Set up the EditText for search input
+        binding.searchTextInput.doAfterTextChanged {
+            val keyword = it.toString()
+            if (keyword.isNotEmpty()) {
+                searchViewModel.searchLocationData(keyword)
+            }
+        }
+
+        // Set up checkbox listeners for season selection
+        binding.seasonSpring.setOnCheckedChangeListener { _, isChecked ->
+            updateSelectedSeasons(isChecked)
+        }
+        binding.seasonSummer.setOnCheckedChangeListener { _, isChecked ->
+            updateSelectedSeasons(isChecked)
+        }
+        binding.seasonFall.setOnCheckedChangeListener { _, isChecked ->
+            updateSelectedSeasons(isChecked)
+        }
+        binding.seasonWinter.setOnCheckedChangeListener { _, isChecked ->
+            updateSelectedSeasons(isChecked)
+        }
+
+        // Cancel button for clearing the search input
         binding.deleteTextInput.setOnClickListener {
             binding.searchTextInput.text.clear()
         }
+    }
 
-        // 검색어 목록 관찰
-        keywordViewModel.keywords.observe(this) {
-            keywordAdapter.submitList(it)
-        }
+    private fun updateSelectedSeasons(isChecked: Boolean) {
+        val selectedSeasons = Seasons(
+            spring = binding.seasonSpring.isChecked,
+            summer = binding.seasonSummer.isChecked,
+            fall = binding.seasonFall.isChecked,
+            winter = binding.seasonWinter.isChecked
+        )
 
-        // 검색 결과 관찰하여 UI 업데이트
-        searchViewModel.locations.observe(this) {
-            searchAdapter.submitList(it)
-            binding.searchResultView.visibility = if (it.isEmpty()) View.GONE else View.VISIBLE
-            binding.emptyView.visibility = if (it.isEmpty()) View.VISIBLE else View.GONE
-        }
+        // Fetch the pins for the selected seasons
+        searchViewModel.fetchPinsForSelectedSeasons(selectedSeasons)
     }
 
     override fun onSearchItemClick(location: Location) {
-        // 검색 항목 클릭 시 선택된 데이터를 반환하고 검색어 저장
-        keywordViewModel.saveKeyword(location.place)
+        // Handle search result click
         val resultIntent = Intent().apply {
             putExtra("place_name", location.place)
             putExtra("road_address_name", location.address)
@@ -82,13 +114,13 @@ class SearchActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeyword
     }
 
     override fun onKeywordItemClick(keyword: String) {
-        // 저장된 검색어 클릭
+        // Handle keyword click
         binding.searchTextInput.setText(keyword)
         searchViewModel.searchLocationData(keyword)
     }
 
     override fun onKeywordItemDeleteClick(keyword: String) {
-        // 저장된 검색어 삭제
-        keywordViewModel.deleteKeyword(keyword)
+        // Handle keyword delete click
+        // Implement keyword deletion logic here
     }
 }
