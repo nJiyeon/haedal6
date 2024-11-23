@@ -22,23 +22,22 @@ public class PlaceService {
     private final Path imageDir = Paths.get(System.getProperty("user.dir"),"src/main/resources/static/");
 
     public List<PlacesResponse> findPlaceByFourSeasons(PlacesRequest request){
-        Set<PlacesResponse> placesResponses = new HashSet<>();
         List<Place> places = new ArrayList<>();
 
         if(request.spring()){
-            places = placeRepository.findAllBySpring(true);
+            places.addAll(placeRepository.findAllBySpring(true));
         }
         if(request.summer()){
-            places = placeRepository.findAllBySummer(true);
+            places.addAll(placeRepository.findAllBySummer(true));
         }
         if(request.fall()){
-            places = placeRepository.findAllByFall(true);
+            places.addAll(placeRepository.findAllByFall(true));
         }
         if(request.winter()){
-            places = placeRepository.findAllByWinter(true);
+            places.addAll(placeRepository.findAllByWinter(true));
         }
 
-        placesResponses = places.stream()
+        Set<PlacesResponse> placesResponses = places.stream()
                 .map(place -> new PlacesResponse(place.getLatitude(), place.getLongitude()))
                 .collect(Collectors.toSet());
 
