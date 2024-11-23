@@ -13,7 +13,7 @@ interface MyApiService {
     @POST("/api/getPlaces")
     suspend fun getPlaces(
         @Body targetSeasons: Seasons
-        ):Response<Coordinate>
+    ):Response<Coordinate>
     @GET("/api/getPlaceDetail")
     suspend fun getPlaceDetailInfo(
         @Query("latitude") latitude: Double,
