@@ -5,8 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- LinearLayout for Checkboxes -->
     <LinearLayout
-        android:id="@+id/search_text_input_view"
+        android:id="@+id/seasons_checkbox_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -14,65 +15,111 @@
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="20dp"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <EditText
-            android:id="@+id/search_text_input"
-            android:layout_width="0dp"
-            android:layout_height="50dp"
-            android:layout_weight="1"
-            android:hint="@string/input_search_keyword"
-            android:importantForAutofill="no"
-            android:inputType="text"
-            tools:ignore="LabelFor"
-            tools:text="@string/input_search_keyword" />
-
-        <ImageView
-            android:id="@+id/delete_text_input"
+        <!-- Checkbox for Spring -->
+        <CheckBox
+            android:id="@+id/season_spring"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="10dp"
-            android:src="@drawable/ic_close">
-        </ImageView>
+            android:layout_weight="1"
+            android:text="@string/season_spring" />
+
+        <!-- Checkbox for Summer -->
+        <CheckBox
+            android:id="@+id/season_summer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/season_summer" />
+
+        <!-- Checkbox for Fall -->
+        <CheckBox
+            android:id="@+id/season_fall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/season_fall" />
+
+        <!-- Checkbox for Winter -->
+        <CheckBox
+            android:id="@+id/season_winter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/season_winter" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/keyword_history_view"
+    <!-- LinearLayout for Search Text Input -->
+    <LinearLayout
+        android:id="@+id/search_text_input_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
+        android:layout_marginTop="0dp"
         android:layout_marginEnd="10dp"
+        android:layout_marginBottom="0dp"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/search_text_input_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/list_keyword" />
+        app:layout_constraintTop_toBottomOf="@id/seasons_checkbox_container">
 
+    <EditText
+        android:id="@+id/search_text_input"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_weight="1"
+        android:hint="@string/input_search_keyword"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        tools:ignore="LabelFor"
+        tools:text="@string/input_search_keyword" />
+
+    <ImageView
+        android:id="@+id/delete_text_input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="10dp"
+        android:src="@drawable/ic_close" />
+</LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/keyword_history_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="10dp"
+    android:layout_marginEnd="10dp"
+    app:layout_constraintTop_toBottomOf="@id/search_text_input_view"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    tools:listitem="@layout/list_keyword" />
+
+        <!-- Search Results Section -->
     <LinearLayout
-        android:id="@+id/search_result_view_container"
+    android:id="@+id/search_result_view_container"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:orientation="vertical"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toBottomOf="@id/keyword_history_view">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/search_result_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/keyword_history_view">
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:listitem="@layout/list_item" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/search_result_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            tools:listitem="@layout/list_item" />
-
-        <TextView
-            android:id="@+id/empty_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="@string/no_result_search_keyword" />
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:text="@string/no_result_search_keyword" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

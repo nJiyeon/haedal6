@@ -3,6 +3,11 @@
     <string name="input_search_keyword">검색어를 입력해 주세요.</string>
     <string name="no_result_search_keyword">검색 결과가 없습니다.</string>
     <string name="remove_keyword">삭제</string>
+    <string name ="season_spring">봄</string>
+    <string name ="season_summer">여름</string>
+    <string name ="season_fall">겨울</string>
+    <string name ="season_winter">겨울</string>
+
 
     <style name="labelTextStyle">
         <item name="android:textSize">14sp</item>
