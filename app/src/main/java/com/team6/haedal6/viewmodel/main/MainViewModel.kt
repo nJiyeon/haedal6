@@ -3,10 +3,13 @@ package com.team6.haedal6.viewmodel.main
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.team6.haedal6.model.Location
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.team6.haedal6.model.Coordinate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -16,46 +19,40 @@ class MainViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     private val sharedPreferences: SharedPreferences = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    private val _lastMarkerPosition = MutableLiveData<Location?>()
-    val lastMarkerPosition: LiveData<Location?> get() = _lastMarkerPosition
+    private val _markerPositions = MutableLiveData<List<Coordinate>>()
+    val markerPositions: LiveData<List<Coordinate>> get() = _markerPositions
 
     init {
-        loadLastMarkerPosition()
+        loadMarkerPositions()
     }
 
-    fun saveLastMarkerPosition(location: Location) {
+    // 여러 개의 Location 저장
+    fun saveMarkerPositions(coordinate: List<Coordinate>) {
+        val gson = Gson()
+        val json = gson.toJson(coordinate)  // 리스트를 JSON으로 변환
         with(sharedPreferences.edit()) {
-            putFloat(PREF_LATITUDE, location.latitude.toFloat())
-            putFloat(PREF_LONGITUDE, location.longitude.toFloat())
-            putString(PREF_PLACE_NAME, location.place)
-            putString(PREF_ROAD_ADDRESS_NAME, location.address)
+            putString(PREF_LOCATIONS, json)  // JSON 문자열로 저장
             apply()
         }
-        _lastMarkerPosition.value = location
+        _markerPositions.value = coordinate
     }
 
-    private fun loadLastMarkerPosition() {
-        if (sharedPreferences.contains(PREF_LATITUDE) && sharedPreferences.contains(PREF_LONGITUDE)) {
-            val latitude = sharedPreferences.getFloat(PREF_LATITUDE, 0.0f).toDouble()
-            val longitude = sharedPreferences.getFloat(PREF_LONGITUDE, 0.0f).toDouble()
-            val placeName = sharedPreferences.getString(PREF_PLACE_NAME, "") ?: ""
-            val roadAddressName = sharedPreferences.getString(PREF_ROAD_ADDRESS_NAME, "") ?: ""
-
-            _lastMarkerPosition.value = if (placeName.isNotEmpty() && roadAddressName.isNotEmpty()) {
-                Location(place = placeName, address = roadAddressName, category = "", latitude = latitude, longitude = longitude)
-            } else {
-                null
-            }
+    // 저장된 위치들 불러오기
+    private fun loadMarkerPositions() {
+        val json = sharedPreferences.getString(PREF_LOCATIONS, null)
+        if (!json.isNullOrEmpty()) {
+            val gson = Gson()
+            Log.d("MainViewModel", "Saving JSON: $json")
+            val type = object : TypeToken<List<Coordinate>>() {}.type
+            val coordinate: List<Coordinate> = gson.fromJson(json, type)  // JSON을 리스트로 변환
+            _markerPositions.value =  coordinate
         } else {
-            _lastMarkerPosition.value = null
+            _markerPositions.value = emptyList()
         }
     }
 
     companion object {
-        private const val PREFS_NAME = "LastMarkerPrefs"
-        private const val PREF_LATITUDE = "lastLatitude"
-        private const val PREF_LONGITUDE = "lastLongitude"
-        private const val PREF_PLACE_NAME = "lastPlaceName"
-        private const val PREF_ROAD_ADDRESS_NAME = "lastRoadAddressName"
+        private const val PREFS_NAME = "MarkerPrefs"
+        private const val PREF_LOCATIONS = "locations"
     }
 }

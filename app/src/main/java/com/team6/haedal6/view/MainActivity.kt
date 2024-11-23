@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -14,7 +15,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.databinding.DataBindingUtil
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.kakao.vectormap.KakaoMap
@@ -31,6 +31,7 @@ import com.kakao.vectormap.label.LabelStyles
 import com.kakao.vectormap.label.LabelTextStyle
 import com.team6.haedal6.R
 import com.team6.haedal6.databinding.ActivityMainBinding
+import com.team6.haedal6.model.Coordinate
 import com.team6.haedal6.model.Location
 import com.team6.haedal6.repository.location.LocationSearcher
 import com.team6.haedal6.viewmodel.keyword.KeywordViewModel
@@ -39,7 +40,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordItemClickListener {
+class MainActivity : AppCompatActivity(){
 
     private var mapView: MapView? = null
     private var kakaoMap: KakaoMap? = null
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordIt
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<FrameLayout>
     private lateinit var bottomSheetTitle: TextView
     private lateinit var bottomSheetAddress: TextView
+    private lateinit var bottomSheetImg: ImageView
     private lateinit var bottomSheetLayout: FrameLayout
     private lateinit var searchResultLauncher: ActivityResultLauncher<Intent>
 
@@ -96,6 +98,10 @@ class MainActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordIt
                 labelLayer = kakaoMap?.labelManager?.layer
                 Log.d(TAG, "Map is ready")
             }
+
+            override fun getPosition(): LatLng {
+                return LatLng.from(35.889019, 128.610257)
+            }
         })
 
         // 검색창 클릭 시 검색 페이지로 이동
@@ -104,17 +110,6 @@ class MainActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordIt
             val intent = Intent(this, SearchActivity::class.java)
             searchResultLauncher.launch(intent)
         }
-
-        // Observe the last marker position
-        mainViewModel.lastMarkerPosition.observe(this, Observer { location: Location? -> // 타입 명시적으로 지정
-            location?.let { loc -> // 변수 이름을 명확하게 변경
-                Log.d(TAG, "Loaded last marker position: lat=${loc.latitude}, lon=${loc.longitude}, placeName=${loc.place}, roadAddressName=${loc.address}")
-                addLabel(loc)
-                val position = LatLng.from(loc.latitude, loc.longitude)
-                moveCamera(position)
-                updateBottomSheet(loc.place, loc.address)
-            }
-        })
     }
 
     private fun initializeViews(binding: ActivityMainBinding) { // 바인딩을 통해 초기화
@@ -136,22 +131,35 @@ class MainActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordIt
             return
         }
 
-        val placeName = data.getStringExtra("place_name")
-        val roadAddressName = data.getStringExtra("road_address_name")
-        val latitude = data.getDoubleExtra("latitude", 0.0)
-        val longitude = data.getDoubleExtra("longitude", 0.0)
+        // 여러 개의 장소 정보를 받을 수 있다고 가정
+        val latitudes = data.getDoubleArrayExtra("latitudes")
+        val longitudes = data.getDoubleArrayExtra("longitudes")
 
-        if (placeName == null || roadAddressName == null) {
+        // 유효성 검사
+        if (latitudes == null || longitudes == null || latitudes.size != longitudes.size) {
             showToast("검색 결과가 유효하지 않습니다.")
             return
         }
 
-        Log.d(TAG, "Search result: $placeName, $roadAddressName, $latitude, $longitude")
+        // Coordinate 리스트 생성
+        val coordinates = mutableListOf<Coordinate>()
+        for (i in latitudes.indices) {
+            val latitude = latitudes[i]
+            val longitude = longitudes[i]
 
-        // latitude와 longitude 값을 Double로 명시적으로 변환하여 Location 객체를 생성
-        val location = Location(place = placeName, address = roadAddressName, category = "", latitude = latitude, longitude = longitude)
-        addLabel(location)
-        mainViewModel.saveLastMarkerPosition(location)
+            Log.d("nJiyeon", "search result: Latitude: $latitude, Longitude: $longitude")
+
+            // 리스트에 추가
+            coordinates.add(Coordinate(latitude = latitude, longitude = longitude))
+        }
+
+        // 모든 좌표에 대해 라벨 추가
+        coordinates.forEach { coordinate ->
+            addLabel(listOf(coordinate)) // 각 좌표에 대해 라벨 추가
+        }
+
+        // ViewModel에 좌표 리스트 저장
+        mainViewModel.saveMarkerPositions(coordinates)
     }
 
     private fun showToast(message: String) {
@@ -198,30 +206,26 @@ class MainActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordIt
         })
     }
 
-    private fun addLabel(location: Location) { // 변수 이름 변경
-        val placeName = location.place
-        val roadAddressName = location.address
-        val latitude = location.latitude
-        val longitude = location.longitude
+    private fun addLabel(coordinates: List<Coordinate>) {
+        coordinates.forEach{coordinate ->
+            val latitude = coordinate.latitude
+            val longitude = coordinate.longitude
 
-        val position = LatLng.from(latitude, longitude)
-        val styles = kakaoMap?.labelManager?.addLabelStyles(
-            LabelStyles.from(
-                LabelStyle.from(R.drawable.pin).setZoomLevel(DEFAULT_ZOOM_LEVEL),
-                LabelStyle.from(R.drawable.pin)
-                    .setTextStyles(
-                        LabelTextStyle.from(this, R.style.labelTextStyle)
-                    )
-                    .setZoomLevel(DEFAULT_ZOOM_LEVEL)
+            val position = LatLng.from(latitude, longitude)
+            val styles = kakaoMap?.labelManager?.addLabelStyles(
+                LabelStyles.from(
+                    LabelStyle.from(R.drawable.pin).setZoomLevel(DEFAULT_ZOOM_LEVEL),
+                    LabelStyle.from(R.drawable.pin)
+                        .setTextStyles(
+                            LabelTextStyle.from(this, R.style.labelTextStyle)
+                        )
+                        .setZoomLevel(DEFAULT_ZOOM_LEVEL)
+                )
             )
-        )
-
-        labelLayer?.addLabel(
-            LabelOptions.from(placeName, position).setStyles(styles).setTexts(placeName)
-        )
-
-        moveCamera(position)
-        updateBottomSheet(placeName, roadAddressName)
+            labelLayer?.addLabel(
+                LabelOptions.from(position).setStyles(styles)
+            )
+        }
     }
 
     private fun moveCamera(position: LatLng) {
@@ -236,20 +240,6 @@ class MainActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeywordIt
         bottomSheetAddress.text = roadAddressName
         bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
         bottomSheetLayout.visibility = View.VISIBLE
-    }
-
-    override fun onKeywordItemClick(keyword: String) {
-        // 아무 작업도 수행하지 않음
-    }
-
-    override fun onKeywordItemDeleteClick(keyword: String) {
-        // 아무 작업도 수행하지 않음
-    }
-
-    override fun onSearchItemClick(location: Location) { // 변수 이름 변경
-        // 검색 결과 목록에서 항목을 선택했을 때의 동작을 정의
-        addLabel(location)
-        mainViewModel.saveLastMarkerPosition(location)
     }
 
     companion object {

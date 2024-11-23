@@ -7,6 +7,7 @@
     <string name ="season_summer">여름</string>
     <string name ="season_fall">가을</string>
     <string name ="season_winter">겨울</string>
+    <string name ="apply">적용</string>
 
 
     <style name="labelTextStyle">

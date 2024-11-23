@@ -3,6 +3,7 @@ package com.team6.haedal6.view
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -71,16 +72,30 @@ class SearchActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeyword
 
         // Set up checkbox listeners for season selection
         binding.seasonSpring.setOnCheckedChangeListener { _, isChecked ->
-            updateSelectedSeasons(isChecked)
+            updateSelectedSeasons()
         }
         binding.seasonSummer.setOnCheckedChangeListener { _, isChecked ->
-            updateSelectedSeasons(isChecked)
+            updateSelectedSeasons()
         }
         binding.seasonFall.setOnCheckedChangeListener { _, isChecked ->
-            updateSelectedSeasons(isChecked)
+            updateSelectedSeasons()
         }
         binding.seasonWinter.setOnCheckedChangeListener { _, isChecked ->
-            updateSelectedSeasons(isChecked)
+            updateSelectedSeasons()
+        }
+
+        // Apply button for submitting the selected seasons
+        binding.applyButton.setOnClickListener {
+            // 계절 선택 업데이트
+            updateSelectedSeasons()
+
+            // MainActivity로 화면 전환
+            val intent = Intent(this, MainActivity::class.java)
+
+            // MainActivity로 이동
+            startActivity(intent)
+
+            finish()
         }
 
         // Cancel button for clearing the search input
@@ -89,16 +104,17 @@ class SearchActivity : AppCompatActivity(), OnSearchItemClickListener, OnKeyword
         }
     }
 
-    private fun updateSelectedSeasons(isChecked: Boolean) {
+    private fun updateSelectedSeasons() {
         val selectedSeasons = Seasons(
             spring = binding.seasonSpring.isChecked,
             summer = binding.seasonSummer.isChecked,
             fall = binding.seasonFall.isChecked,
             winter = binding.seasonWinter.isChecked
         )
-
-        // Fetch the pins for the selected seasons
         searchViewModel.fetchPinsForSelectedSeasons(selectedSeasons)
+
+        // 확인 로그
+        Log.d("nJiyeon", "Selected seasons: Spring=${selectedSeasons.spring}, Summer=${selectedSeasons.summer}, Fall=${selectedSeasons.fall}, Winter=${selectedSeasons.winter}")
     }
 
     override fun onSearchItemClick(location: Location) {
