@@ -1,14 +1,10 @@
 pluginManagement {
     repositories {
-        google {
-            content {
-                includeGroupByRegex("com\\.android.*")
-                includeGroupByRegex("com\\.google.*")
-                includeGroupByRegex("androidx.*")
-            }
-        }
+        google()
         mavenCentral()
         gradlePluginPortal()
+        maven("https://devrepo.kakao.com/nexus/repository/kakaomap-releases/")
+        maven ( "https://devrepo.kakao.com/nexus/content/groups/public/" )
     }
 }
 dependencyResolutionManagement {
@@ -16,9 +12,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven("https://devrepo.kakao.com/nexus/repository/kakaomap-releases/")
+        maven ("https://devrepo.kakao.com/nexus/content/groups/public/" )
     }
 }
-
 rootProject.name = "Haedal6"
 include(":app")
  
